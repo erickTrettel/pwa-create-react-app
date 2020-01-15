@@ -1,68 +1,108 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Como criar um PWA com CRA (create-react-app)
 
-## Available Scripts
+Seguindo esse tutorial, você será capaz de criar um **Progressive Web App** do zero.
 
-In the project directory, you can run:
+## 1. No arquivo `src/index.js` altere a seguinte linha de código:
 
-### `yarn start`
+`serviceWorker.unregister();`
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+para
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+`serviceWorker.register();`
 
-### `yarn test`
+## 2. No arquivo `src/serviceWorker.js` faça as seguintes alterações:
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Remova a checakgem do NODE_ENV como mostra a o exemplo a seguir:
 
-### `yarn build`
+`if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {`
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+para:
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+`if ('serviceWorker' in navigator) {`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Altere o nome do service worker para `sw.js`:
 
-### `yarn eject`
+`const swUrl = ${process.env.PUBLIC_URL}/service-worker.js;`
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+para 
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+`const swUrl = ${process.env.PUBLIC_URL}/sw.js;`
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## 3. Crie o seu service worker (sw.js) na pasta `public` com o seguinte conteúdo:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```
+// install
+self.addEventListener('install', evt => {
+  evt.skipWaiting();
+});
 
-## Learn More
+// activate
+self.addEventListener('activate', evt => {
+  evt.skipWaiting();
+});
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+// fetch
+self.addEventListener('fetch', evt => {
+  evt.respondWith(
+    fetch(evt.request)
+      .then(fetchResponse => {
+        return fetchResponse;
+      })
+      .catch(() => {
+        caches.match(evt.request)
+          .then(cacheResponse => {
+            return cacheResponse;
+          })
+      })
+  );
+});
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 4. Verifique as informações contidas no arquivo `manifest.json`, como abaixo:
 
-### Code Splitting
+O [**Manifest**](https://developers.google.com/web/fundamentals/web-app-manifest) é um arquivo no formato JSON que funciona como uma "etiqueta" para o navegador com informações sobre sua aplicação. <br>
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+```
+{
+  "short_name": "React App",
+  "name": "Create React App Sample",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
+```
 
-### Analyzing the Bundle Size
+## 5. Verifique se existe a referência para o arquivo manifest.json no seu index.html:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+`<link rel="manifest" href="%PUBLIC_URL%/manifest.json" />`
 
-### Making a Progressive Web App
+#### Outras tags para o index.html
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+Para otimizar seu PWA, você pode também adicionar as seguintes tags:<br>
 
-### Advanced Configuration
+`<meta name="theme-color" content="#000000" />` <br>
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+Para iOS:
 
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+```
+<link rel="apple-touch-icon" href="/icons/icons-96x96.png">
+<meta name="apple-mobile-web-app-status-bar" content="#aa7700">
+```
